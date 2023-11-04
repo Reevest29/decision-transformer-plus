@@ -13,6 +13,7 @@ from decision_transformer.models.decision_transformer import DecisionTransformer
 from decision_transformer.models.mlp_bc import MLPBCModel
 from decision_transformer.training.act_trainer import ActTrainer
 from decision_transformer.training.seq_trainer import SequenceTrainer
+from decision_transformer.training.seq_plus_trainer import SequencePlusTrainer
 
 
 def discount_cumsum(x, gamma):
@@ -252,6 +253,16 @@ def experiment(
             get_batch=get_batch,
             scheduler=scheduler,
             loss_fn=lambda s_hat, a_hat, r_hat, s, a, r: torch.mean((a_hat - a)**2),
+            eval_fns=[eval_episodes(tar) for tar in env_targets],
+        )
+    elif model_type == 'dt+':
+        trainer = SequencePlusTrainer(
+            model=model,
+            optimizer=optimizer,
+            batch_size=batch_size,
+            get_batch=get_batch,
+            scheduler=scheduler,
+            loss_fn=lambda s_hat, a_hat, r_hat, s, a, r: torch.mean((a_hat - a)**2 + (s_hat - s)**2 + (r_hat - r)**2),
             eval_fns=[eval_episodes(tar) for tar in env_targets],
         )
     elif model_type == 'bc':
