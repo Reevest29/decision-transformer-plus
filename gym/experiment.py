@@ -8,6 +8,8 @@ import pickle
 import random
 import sys
 
+import torch_xla_py.xla_model as xm
+
 from decision_transformer.evaluation.evaluate_episodes import evaluate_episode, evaluate_episode_rtg
 from decision_transformer.models.decision_transformer import DecisionTransformer
 from decision_transformer.models.mlp_bc import MLPBCModel
@@ -29,6 +31,7 @@ def experiment(
         variant,
 ):
     device = variant.get('device', 'cuda')
+    device = xm.xla_device()
     log_to_wandb = variant.get('log_to_wandb', False)
 
     env_name, dataset = variant['env'], variant['dataset']
