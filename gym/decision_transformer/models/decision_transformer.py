@@ -107,7 +107,7 @@ class DecisionTransformer(TrajectoryModel):
         actions = actions.reshape(1, -1, self.act_dim)
         returns_to_go = returns_to_go.reshape(1, -1, 1)
         timesteps = timesteps.reshape(1, -1)
-
+        import pdb;pdb.set_trace()
         if self.max_length is not None:
             states = states[:,-self.max_length:]
             actions = actions[:,-self.max_length:]
