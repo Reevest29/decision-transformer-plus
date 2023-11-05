@@ -282,7 +282,7 @@ def experiment(
             batch_size=batch_size,
             get_batch=get_batch,
             scheduler=scheduler,
-            loss_fn=lambda s_hat, a_hat, r_hat, s, a, r: torch.mean((a_hat - a)**2 + (s_hat - s)**2 + (r_hat - r)**2),
+            loss_fn=lambda s_hat, a_hat, r_hat, s, a, r: torch.mean(((a_hat - a)**2).mean() + ((s_hat - s)**2).mean() + ((r_hat - r)**2).mean()),
             eval_fns=[eval_episodes(tar) for tar in env_targets],
         )
     elif model_type == 'bc':
