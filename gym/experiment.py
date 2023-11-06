@@ -174,7 +174,7 @@ def experiment(
             returns, lengths = [], []
             for _ in range(num_eval_episodes):
                 with torch.no_grad():
-                    if model_type == 'dt':
+                    if model_type in ['dt', 'dt+']:
                         ret, length = evaluate_episode_rtg(
                             env,
                             state_dim,
