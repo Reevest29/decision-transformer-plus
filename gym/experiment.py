@@ -276,13 +276,17 @@ def experiment(
             eval_fns=[eval_episodes(tar) for tar in env_targets],
         )
     elif model_type == 'dt+':
+        loss_fn = lambda s_hat, a_hat, r_hat, s, a, r: torch.mean(
+            ((variant['a_weight'] * (a_hat - a)**2).mean()) + 
+            ((variant['s_weight'] * (s_hat - s)**2).mean()) + 
+            ((variant['r_weight'] * (r_hat - r)**2).mean())) 
         trainer = SequencePlusTrainer(
             model=model,
             optimizer=optimizer,
             batch_size=batch_size,
             get_batch=get_batch,
             scheduler=scheduler,
-            loss_fn=lambda s_hat, a_hat, r_hat, s, a, r: torch.mean(((a_hat - a)**2).mean() + ((s_hat - s)**2).mean() + ((r_hat - r)**2).mean()),
+            loss_fn= loss_fn,
             eval_fns=[eval_episodes(tar) for tar in env_targets],
         )
     elif model_type == 'bc':
@@ -332,6 +336,9 @@ if __name__ == '__main__':
     parser.add_argument('--max_iters', type=int, default=10)
     parser.add_argument('--num_steps_per_iter', type=int, default=10000)
     parser.add_argument('--device', type=str, default='cuda')
+    parser.add_argument('--a_weight',type=float,default=1)
+    parser.add_argument('--r_weight',type=float,default=1)
+    parser.add_argument('--s_weight',type=float,default=1)
     parser.add_argument('--log_to_wandb', '-w', type=bool, default=False)
     
     args = parser.parse_args()
