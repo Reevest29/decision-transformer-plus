@@ -7,7 +7,7 @@ import argparse
 import pickle
 import random
 import sys
-
+from tqdm import tqdm
 import torch
 #import torch_xla
 #import torch_xla.core.xla_model as xm
@@ -172,7 +172,7 @@ def experiment(
     def eval_episodes(target_rew):
         def fn(model):
             returns, lengths = [], []
-            for _ in range(num_eval_episodes):
+            for _ in tqdm(range(num_eval_episodes)):
                 with torch.no_grad():
                     if model_type in ['dt', 'dt+']:
                         ret, length = evaluate_episode_rtg(

@@ -39,7 +39,7 @@ class Trainer:
 
         self.model.eval()
         print(f"Evaluation Loop #{iter_num}")
-        for eval_fn in tqdm(self.eval_fns):
+        for eval_fn in (self.eval_fns):
             outputs = eval_fn(self.model)
             for k, v in outputs.items():
                 logs[f'evaluation/{k}'] = v
