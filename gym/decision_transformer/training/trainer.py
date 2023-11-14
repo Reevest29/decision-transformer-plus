@@ -26,6 +26,7 @@ class Trainer:
         train_start = time.time()
 
         self.model.train()
+        print(f"Training Loop #{iter_num}")
         for _ in tqdm(range(num_steps)):
             train_loss = self.train_step()
             train_losses.append(train_loss)
@@ -37,7 +38,8 @@ class Trainer:
         eval_start = time.time()
 
         self.model.eval()
-        for eval_fn in self.eval_fns:
+        print(f"Evaluation Loop #{iter_num}")
+        for eval_fn in tqdm(self.eval_fns):
             outputs = eval_fn(self.model)
             for k, v in outputs.items():
                 logs[f'evaluation/{k}'] = v
