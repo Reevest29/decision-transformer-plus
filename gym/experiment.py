@@ -34,7 +34,7 @@ def experiment(
 ):
     device = variant.get('device', 'xla')
     import pdb;pdb.set_trace()
-    device = 'cpu' if not device else xm.xla_device()
+    device = xm.xla_device() if device == "xla" else 'cpu'
     log_to_wandb = variant.get('log_to_wandb', False)
 
     env_name, dataset = variant['env'], variant['dataset']
