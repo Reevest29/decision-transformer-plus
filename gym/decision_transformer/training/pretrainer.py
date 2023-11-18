@@ -98,7 +98,7 @@ class PreTrainer:
 
         actions = traj['actions']
         states = traj['observations']
-        gt_state = self.reset()
+        gt_state = self.env.reset()
         for t in range(self.max_ep_len):
             
             state_diff = gt_state - states[t]
