@@ -105,7 +105,7 @@ class PreTrainer:
             mag_gt = np.linalg.norm(gt_state)
             mag_exp = np.linalg.norm(states[t])
             state_diff = abs / (0.5*(mag_gt+mag_exp))
-            print(state_diff)
+            print(state_diff.mean() * 100)
 
             gt_state, reward, done, _ = self.env.step(actions[t])
             
