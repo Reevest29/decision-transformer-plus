@@ -178,7 +178,7 @@ def experiment(
             returns, lengths = [], []
             for _ in tqdm(range(num_eval_episodes)):
                 with torch.no_grad():
-                    if model_type in ['dt', 'dt+']:
+                    if model_type in ['dt', 'dt+', 'dt+wm']:
                         ret, length = evaluate_episode_rtg(
                             env,
                             state_dim,
@@ -230,7 +230,7 @@ def experiment(
             resid_pdrop=variant['dropout'],
             attn_pdrop=variant['dropout'],
         )
-    elif model_type == 'dt+':
+    elif model_type in ['dt+','dt+wm']:
         model = DecisionTransformer(
             state_dim=state_dim,
             act_dim=act_dim,
