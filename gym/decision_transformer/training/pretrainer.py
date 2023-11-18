@@ -99,9 +99,10 @@ class PreTrainer:
         actions = traj['actions']
         states = traj['observations']
         gt_state = self.env.reset()
+        import pdb; pdb.set_trace()
         max_t = len(actions)
-        obs_max = states.max(1)
-        obs_min = states.min(1)
+        obs_max = states.max(2)
+        obs_min = states.min(2)
         for t in range(self.max_ep_len):
             
             #scale
