@@ -99,21 +99,28 @@ class PreTrainer:
         actions = traj['actions']
         states = traj['observations']
         gt_state = self.env.reset()
+        max_t = len(actions)
+        obs_max = states.max(1)
+        obs_min = states.min(1)
         for t in range(self.max_ep_len):
             
-            abs = np.abs(gt_state - states[t])
+            #scale
+            gt_state = (gt_state - obs_min) / (obs_max-obs_min)
+            exp_state = (states[t] - obs_min) / (obs_max-obs_min)
+
+            abs = np.abs(gt_state - exp_state)
             mag_gt = np.linalg.norm(gt_state)
-            mag_exp = np.linalg.norm(states[t])
+            mag_exp = np.linalg.norm(exp_state)
             state_diff = abs / (0.5*(mag_gt+mag_exp))
-            print(state_diff.mean() * 100)
+            state_diff_pct = state_diff.mean() * 100
+            print(state_diff_pct)
 
             gt_state, reward, done, _ = self.env.step(actions[t])
             
-            if done:
+            
+            if done or t == max_t-1:
                 break
         import pdb; pdb.set_trace()
-
-        states, actions, rewards, dones, attention_mask, returns = self.get_batch(self.batch_size)
         state_target, action_target, reward_target = torch.clone(states), torch.clone(actions), torch.clone(rewards)
 
         state_preds, action_preds, reward_preds = self.model.forward(
