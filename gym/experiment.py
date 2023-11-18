@@ -18,7 +18,7 @@ from decision_transformer.models.mlp_bc import MLPBCModel
 from decision_transformer.training.act_trainer import ActTrainer
 from decision_transformer.training.seq_trainer import SequenceTrainer
 from decision_transformer.training.seq_plus_trainer import SequencePlusTrainer
-
+from decision_transformer.training.pretrainer import PreTrainer
 
 def discount_cumsum(x, gamma):
     discount_cumsum = np.zeros_like(x)
@@ -121,6 +121,9 @@ def experiment(
 
     # used to reweight sampling so we sample according to timesteps instead of trajectories
     p_sample = traj_lens[sorted_inds] / sum(traj_lens[sorted_inds])
+
+    def get_trajectory(traj_num):
+       return trajectories[int(sorted_inds[traj_num])]
 
     def get_batch(batch_size=256, max_len=K):
         batch_inds = np.random.choice(
@@ -290,6 +293,25 @@ def experiment(
             loss_fn= loss_fn,
             eval_fns=[eval_episodes(tar) for tar in env_targets],
         )
+    elif model_type == 'dt+wm':
+        loss_fn = lambda s_hat, a_hat, r_hat, s, a, r: torch.mean(
+            ((variant['a_weight'] * (a_hat - a)**2).mean()) + 
+            ((variant['s_weight'] * (s_hat - s)**2).mean()) + 
+            ((variant['r_weight'] * (r_hat - r)**2).mean())) 
+        trainer = PreTrainer(
+            model=model,
+            optimizer=optimizer,
+            batch_size=batch_size,
+            get_batch=get_batch,
+            get_trajectory=get_trajectory,
+            loss_fn= loss_fn,
+            env=env,
+            max_ep_len=max_ep_len,
+            pretrain_steps=variant['pretrain_steps_per_iter'],
+            pretrain_iters=variant['pretrain_iters'],
+            scheduler=scheduler,
+            eval_fns=[eval_episodes(tar) for tar in env_targets],
+        )
     elif model_type == 'bc':
         trainer = ActTrainer(
             model=model,
@@ -340,6 +362,8 @@ if __name__ == '__main__':
     parser.add_argument('--a_weight',type=float,default=1)
     parser.add_argument('--r_weight',type=float,default=1)
     parser.add_argument('--s_weight',type=float,default=1)
+    parser.add_argument('--pretrain_steps_per_iter', '-ps', type=int, default=100)
+    parser.add_argument('--pretrain_iters', '-pi', type=int, default=100)
     parser.add_argument('--log_to_wandb', '-w', type=bool, default=False)
     
     args = parser.parse_args()
