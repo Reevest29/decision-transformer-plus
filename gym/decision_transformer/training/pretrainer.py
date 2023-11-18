@@ -101,7 +101,7 @@ class PreTrainer:
         gt_state = self.env.reset()
         for t in range(self.max_ep_len):
             
-            state_diff = gt_state - states[t]
+            state_diff = (gt_state - states[t]).sum()
             print(state_diff, gt_state, states[t])
 
             gt_state, reward, done, _ = self.env.step(actions[t])
