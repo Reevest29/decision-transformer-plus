@@ -33,7 +33,6 @@ def experiment(
         variant,
 ):
     device = variant.get('device', 'xla')
-    import pdb;pdb.set_trace()
     device = "cpu" #xm.xla_device() if device == "xla" else 'cpu'
     log_to_wandb = variant.get('log_to_wandb', False)
 

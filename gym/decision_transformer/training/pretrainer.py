@@ -101,8 +101,11 @@ class PreTrainer:
         gt_state = self.env.reset()
         for t in range(self.max_ep_len):
             
-            state_diff = (gt_state - states[t]).sum()
-            print(state_diff, gt_state, states[t])
+            abs = np.abs(gt_state - states[t])
+            mag_gt = np.linalg.norm(gt_state)
+            mag_exp = np.linalg.norm(states[t])
+            state_diff = abs / (0.5*(mag_gt+mag_exp))
+            print(state_diff)
 
             gt_state, reward, done, _ = self.env.step(actions[t])
             
