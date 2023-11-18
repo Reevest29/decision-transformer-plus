@@ -93,7 +93,21 @@ class PreTrainer:
         return loss.detach().cpu().item()
     
     def pretrain_step(self):
-        self.get_trajectory(0)
+        traj = self.get_trajectory(0)
+        
+
+        actions = traj['actions']
+        states = traj['observations']
+        gt_state = self.reset()
+        for t in range(self.max_ep_len):
+            
+            state_diff = gt_state - states[t]
+            print(state_diff, gt_state, states[t])
+
+            gt_state, reward, done, _ = self.env.step(actions[t])
+            
+            if done:
+                break
         import pdb; pdb.set_trace()
 
         states, actions, rewards, dones, attention_mask, returns = self.get_batch(self.batch_size)
