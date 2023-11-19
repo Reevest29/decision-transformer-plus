@@ -183,10 +183,13 @@ class PreTrainer:
 
             import pdb;pdb.set_trace()
             # 
-            loss = self.loss_fn(
-            state_preds, 0*action_preds, reward_preds,
-            state_target,  0*action_target, reward_target,
-        )
+        #     loss = self.loss_fn(
+        #     state_preds, 0*action_preds, reward_preds,
+        #     state_target,  0*action_target, reward_target,
+        # )
+
+            loss = ((state_preds - state_target) **2) + ((reward_preds - reward_target) **2)
+            loss = loss.mean()
             running_loss += loss.item()
 
             self.optimizer.zero_grad()
