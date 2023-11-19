@@ -143,8 +143,8 @@ class PreTrainer:
             states, actions, rewards, dones, rtg, timesteps, attention_mask = self.get_trajectory(0,t,self.context_len)
             
             # end of trajectory
-            if attention_mask.sum() == attention_mask.shape[1]:
-                break 
+            # if attention_mask.sum() == attention_mask.shape[1]:
+            #     break 
         
             action_target = torch.clone(actions)
             state_target = torch.clone(states)
@@ -190,6 +190,7 @@ class PreTrainer:
             loss.backward()
             self.optimizer.step()
             
+            import pdb; pdb.set_trace()
             if exp_next_done or dt_next_done:
                 break
 
