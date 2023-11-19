@@ -156,6 +156,8 @@ class PreTrainer:
             states, actions, rewards, rtg[:,:-1], timesteps, attention_mask=attention_mask,
         )
 
+            import pdb; pdb.set_trace()
+
             # Simulate export and predicted actions
             practice_env = deepcopy(self.env)    
             exp_next_state, exp_next_reward, exp_next_done, _ = self.env.step(actions[-1])
@@ -190,7 +192,6 @@ class PreTrainer:
             loss.backward()
             self.optimizer.step()
             
-            import pdb; pdb.set_trace()
             if exp_next_done or dt_next_done:
                 break
 
