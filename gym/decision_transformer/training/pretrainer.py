@@ -156,8 +156,6 @@ class PreTrainer:
             states, actions, rewards, rtg[:,:-1], timesteps, attention_mask=attention_mask,
         )
 
-            import pdb; pdb.set_trace()
-
             # Simulate export and predicted actions
             practice_env = deepcopy(self.env)    
 
