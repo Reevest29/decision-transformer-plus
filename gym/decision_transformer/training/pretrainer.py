@@ -181,7 +181,6 @@ class PreTrainer:
             state_target[-1] = torch.from_numpy(dt_next_state)
             reward_target[-1] = dt_next_reward
 
-            import pdb;pdb.set_trace()
             # 
         #     loss = self.loss_fn(
         #     state_preds, 0*action_preds, reward_preds,
