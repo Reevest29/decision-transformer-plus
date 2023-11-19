@@ -122,7 +122,7 @@ class PreTrainer:
         # max_t = len(actions)
         # obs_max = states.max(0)
         # obs_min = states.min(0)
-
+        self.env.reset()
         gt_states = []
         gt_rewards = []
         running_loss = 0
