@@ -180,8 +180,8 @@ class PreTrainer:
             reward_preds = reward_preds.reshape(-1, reward_dim)[attention_mask.reshape(-1) > 0]
             reward_target = reward_target.reshape(-1, reward_dim)[attention_mask.reshape(-1) > 0]
 
-            state_target[-1] = dt_next_state
-            reward_target[-1] = dt_next_reward
+            state_target[-1] = torch.from_numpy(dt_next_state)
+            reward_target[-1] = torch.from_numpy(dt_next_reward)
 
 
             # 
