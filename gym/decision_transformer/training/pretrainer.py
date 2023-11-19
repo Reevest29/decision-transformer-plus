@@ -160,8 +160,8 @@ class PreTrainer:
 
             # Simulate export and predicted actions
             practice_env = deepcopy(self.env)    
-            exp_next_state, exp_next_reward, exp_next_done, _ = self.env.step(actions[-1])
-            dt_next_state, dt_next_reward, dt_next_done, _ = practice_env.step(action_preds[-1])
+            exp_next_state, exp_next_reward, exp_next_done, _ = self.env.step(actions[:,-1])
+            dt_next_state, dt_next_reward, dt_next_done, _ = practice_env.step(action_preds[:,-1])
 
             # Apply attention masks
             act_dim = action_preds.shape[2]
