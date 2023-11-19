@@ -121,7 +121,8 @@ def experiment(
     # used to reweight sampling so we sample according to timesteps instead of trajectories
     p_sample = traj_lens[sorted_inds] / sum(traj_lens[sorted_inds])
 
-    def get_pretrain_batch(traj, si, max_len):        
+    def get_pretrain_batch(traj, si, max_len):     
+        s, a, r, d, rtg, timesteps, mask = [], [], [], [], [], [], []   
         s.append(traj['observations'][si:si + max_len].reshape(1, -1, state_dim))
         a.append(traj['actions'][si:si + max_len].reshape(1, -1, act_dim))
         r.append(traj['rewards'][si:si + max_len].reshape(1, -1, 1))
