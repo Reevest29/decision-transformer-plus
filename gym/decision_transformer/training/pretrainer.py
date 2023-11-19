@@ -193,7 +193,7 @@ class PreTrainer:
             if exp_next_done or dt_next_done:
                 break
 
-        return running_loss.detach().cpu().item() / 2
+        return running_loss / t
     
     
 
