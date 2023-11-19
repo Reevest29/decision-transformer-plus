@@ -34,7 +34,7 @@ class PreTrainer:
         self.model.train()
         if iter_num < self.pretrain_iters:
             print(f"Pretrain Loop #{iter_num}")
-            for t in tqdm(range(num_steps)):
+            for t in tqdm(range(self.pretrain_steps)):
                 train_loss = self.pretrain_step()
                 train_losses.append(train_loss)
                 if self.scheduler is not None:
@@ -184,8 +184,8 @@ class PreTrainer:
 
             # 
             loss = self.loss_fn(
-            state_preds, action_preds, reward_preds,
-            state_target, action_target, reward_target,
+            state_preds, 0*action_preds, reward_preds,
+            state_target,  0*action_target, reward_target,
         )
             running_loss += loss.item()
 
