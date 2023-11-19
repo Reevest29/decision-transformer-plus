@@ -3,7 +3,7 @@ import torch
 
 import time
 from tqdm import tqdm
-
+from copy import deepcopy
 class PreTrainer:
 
     def __init__(self, model, optimizer, batch_size, get_batch, get_trajectory, loss_fn, env, max_ep_len, 
@@ -22,6 +22,7 @@ class PreTrainer:
         self.env = env
         self.max_ep_len = max_ep_len
         self.start_time = time.time()
+        self.context_len = self.model.max_len
 
     def train_iteration(self, num_steps, iter_num=0, print_logs=False):
 
@@ -74,67 +75,125 @@ class PreTrainer:
         return logs
 
     def train_step(self):
-        states, actions, rewards, dones, attention_mask, returns = self.get_batch(self.batch_size)
-        state_target, action_target, reward_target = torch.clone(states), torch.clone(actions), torch.clone(rewards)
+        states, actions, rewards, dones, rtg, timesteps, attention_mask = self.get_batch(self.batch_size)
+        action_target = torch.clone(actions)
+        state_target = torch.clone(states)
+        reward_target = torch.clone(rewards)
 
         state_preds, action_preds, reward_preds = self.model.forward(
-            states, actions, rewards, masks=None, attention_mask=attention_mask, target_return=returns,
+            states, actions, rewards, rtg[:,:-1], timesteps, attention_mask=attention_mask,
         )
 
-        # note: currently indexing & masking is not fully correct
+        act_dim = action_preds.shape[2]
+        action_preds = action_preds.reshape(-1, act_dim)[attention_mask.reshape(-1) > 0]
+        action_target = action_target.reshape(-1, act_dim)[attention_mask.reshape(-1) > 0]
+
+        state_dim = state_preds.shape[2]
+        state_preds = state_preds.reshape(-1, state_dim)[attention_mask.reshape(-1) > 0]
+        state_target = state_target.reshape(-1, state_dim)[attention_mask.reshape(-1) > 0]
+
+        reward_dim = reward_preds.shape[2]
+        reward_preds = reward_preds.reshape(-1, reward_dim)[attention_mask.reshape(-1) > 0]
+        reward_target = reward_target.reshape(-1, reward_dim)[attention_mask.reshape(-1) > 0]
+
         loss = self.loss_fn(
             state_preds, action_preds, reward_preds,
-            state_target[:,1:], action_target, reward_target[:,1:],
+            state_target, action_target, reward_target,
         )
+
         self.optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), .25)
         self.optimizer.step()
+
+        with torch.no_grad():
+            self.diagnostics['training/action_error'] = torch.mean((action_preds-action_target)**2).detach().cpu().item()
 
         return loss.detach().cpu().item()
     
     def pretrain_step(self):
-        traj = self.get_trajectory(0)
+        # traj = self.get_trajectory(0)
         
 
-        actions = traj['actions']
-        states = traj['observations']
-        gt_state = self.env.reset()
-        import pdb; pdb.set_trace()
-        max_t = len(actions)
-        obs_max = states.max(0)
-        obs_min = states.min(0)
+        # actions = traj['actions']
+        # states = traj['observations']
+        # gt_state = self.env.reset()
+        # import pdb; pdb.set_trace()
+        # max_t = len(actions)
+        # obs_max = states.max(0)
+        # obs_min = states.min(0)
+
+        gt_states = []
+        gt_rewards = []
+        running_loss = 0
         for t in range(self.max_ep_len):
             
-            #scale
-            gt_state = (gt_state - obs_min) / (obs_max-obs_min)
-            exp_state = (states[t] - obs_min) / (obs_max-obs_min)
+            # #scale
+            # gt_state = (gt_state - obs_min) / (obs_max-obs_min)
+            # exp_state = (states[t] - obs_min) / (obs_max-obs_min)
 
-            abs = np.abs(gt_state - exp_state)
-            mag_gt = np.linalg.norm(gt_state)
-            mag_exp = np.linalg.norm(exp_state)
-            state_diff = abs / (0.5*(mag_gt+mag_exp))
-            state_diff_pct = state_diff.mean() * 100
-            print(state_diff_pct)
+            # abs = np.abs(gt_state - exp_state)
+            # mag_gt = np.linalg.norm(gt_state)
+            # mag_exp = np.linalg.norm(exp_state)
+            # state_diff = abs / (0.5*(mag_gt+mag_exp))
+            # state_diff_pct = state_diff.mean() * 100
 
-            gt_state, reward, done, _ = self.env.step(actions[t])
+            # print(state_diff_pct,(1/state_diff_pct))
+
+            states, actions, rewards, dones, rtg, timesteps, attention_mask = self.get_trajectory(0,t)
             
-            
-            if done or t == max_t-1:
-                break
-        import pdb; pdb.set_trace()
-        state_target, action_target, reward_target = torch.clone(states), torch.clone(actions), torch.clone(rewards)
+            # end of trajectory
+            if attention_mask.sum() == attention_mask.shape[1]:
+                break 
+        
+            action_target = torch.clone(actions)
+            state_target = torch.clone(states)
+            reward_target = torch.clone(rewards)
 
-        state_preds, action_preds, reward_preds = self.model.forward(
-            states, actions, rewards, masks=None, attention_mask=attention_mask, target_return=returns,
+
+            # forward model pass
+            state_preds, action_preds, reward_preds = self.model.forward(
+            states, actions, rewards, rtg[:,:-1], timesteps, attention_mask=attention_mask,
         )
 
-        # note: currently indexing & masking is not fully correct
-        loss = self.loss_fn(
+            # Simulate export and predicted actions
+            practice_env = deepcopy(self.env)    
+            exp_next_state, exp_next_reward, exp_next_done, _ = self.env.step(actions[-1])
+            dt_next_state, dt_next_reward, dt_next_done, _ = practice_env.step(action_preds[-1])
+
+            # Apply attention masks
+            act_dim = action_preds.shape[2]
+            action_preds = action_preds.reshape(-1, act_dim)[attention_mask.reshape(-1) > 0]
+            action_target = action_target.reshape(-1, act_dim)[attention_mask.reshape(-1) > 0]
+
+            state_dim = state_preds.shape[2]
+            state_preds = state_preds.reshape(-1, state_dim)[attention_mask.reshape(-1) > 0]
+            state_target = state_target.reshape(-1, state_dim)[attention_mask.reshape(-1) > 0]
+            
+
+            reward_dim = reward_preds.shape[2]
+            reward_preds = reward_preds.reshape(-1, reward_dim)[attention_mask.reshape(-1) > 0]
+            reward_target = reward_target.reshape(-1, reward_dim)[attention_mask.reshape(-1) > 0]
+
+            state_target[-1] = dt_next_state
+            reward_target[-1] = dt_next_reward
+
+
+            # 
+            loss = self.loss_fn(
             state_preds, action_preds, reward_preds,
-            state_target[:,1:], action_target, reward_target[:,1:],
+            state_target, action_target, reward_target,
         )
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+            running_loss += loss.item()
 
-        return loss.detach().cpu().item()
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+            
+            if exp_next_done or dt_next_done:
+                break
+
+        return running_loss.detach().cpu().item() / 2
+    
+    
+
