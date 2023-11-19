@@ -22,7 +22,7 @@ class PreTrainer:
         self.env = env
         self.max_ep_len = max_ep_len
         self.start_time = time.time()
-        self.context_len = self.model.max_len
+        self.context_len = self.model.max_length
 
     def train_iteration(self, num_steps, iter_num=0, print_logs=False):
 
