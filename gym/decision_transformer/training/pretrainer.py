@@ -140,7 +140,7 @@ class PreTrainer:
 
             # print(state_diff_pct,(1/state_diff_pct))
 
-            states, actions, rewards, dones, rtg, timesteps, attention_mask = self.get_trajectory(0,t)
+            states, actions, rewards, dones, rtg, timesteps, attention_mask = self.get_trajectory(0,t,self.context_len)
             
             # end of trajectory
             if attention_mask.sum() == attention_mask.shape[1]:
