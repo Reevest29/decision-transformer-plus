@@ -25,7 +25,7 @@ class AutoEncoderTrainer(Trainer):
 
 
         num_tokens = batch_size * context_len
-        drop_prob = torch.random(0.7,0.9)
+        drop_prob = np.random.uniform(0.7,0.9)
         state_idxs = torch.randint(high=num_tokens,size=(int(num_tokens*drop_prob),))
         action_idxs = torch.randint(high=num_tokens,size=(int(num_tokens*drop_prob),))
         reward_idxs = torch.randint(high=num_tokens,size=(int(num_tokens*drop_prob),))
