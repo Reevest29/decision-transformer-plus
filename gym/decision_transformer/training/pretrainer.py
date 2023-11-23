@@ -60,8 +60,13 @@ class PreTrainer:
 
         logs['time/total'] = time.time() - self.start_time
         logs['time/evaluation'] = time.time() - eval_start
-        logs['training/train_loss_mean'] = np.mean(train_losses)
-        logs['training/train_loss_std'] = np.std(train_losses)
+        if iter_num < self.pretrain_iters:
+            logs['training/pretrain_loss_mean'] = np.mean(train_losses)
+            logs['training/pretrain_loss_std'] = np.std(train_losses)
+        else:
+            logs['training/train_loss_mean'] = np.mean(train_losses)
+            logs['training/train_loss_std'] = np.std(train_losses)
+            
 
         for k in self.diagnostics:
             logs[k] = self.diagnostics[k]
