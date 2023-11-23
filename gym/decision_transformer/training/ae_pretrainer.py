@@ -19,9 +19,9 @@ class AutoEncoderTrainer(Trainer):
         action_dim = actions_shape[-1]
         reward_dim = rewards_shape[-1]
 
-        flat_states = states.reshape[-1, state_dim]
-        flat_actions = actions.reshape[-1, action_dim]
-        flat_rewards = rewards.reshape[-1, reward_dim]
+        flat_states = states.reshape(-1, state_dim)
+        flat_actions = actions.reshape(-1, action_dim)
+        flat_rewards = rewards.reshape(-1, reward_dim)
 
 
         num_tokens = batch_size * context_len
