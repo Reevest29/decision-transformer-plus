@@ -19,6 +19,7 @@ from decision_transformer.training.act_trainer import ActTrainer
 from decision_transformer.training.seq_trainer import SequenceTrainer
 from decision_transformer.training.seq_plus_trainer import SequencePlusTrainer
 from decision_transformer.training.pretrainer import PreTrainer
+from decision_transformer.training.ae_pretrainer import AutoEncoderTrainer
 
 def discount_cumsum(x, gamma):
     discount_cumsum = np.zeros_like(x)
@@ -208,7 +209,7 @@ def experiment(
             returns, lengths = [], []
             for _ in tqdm(range(num_eval_episodes)):
                 with torch.no_grad():
-                    if model_type in ['dt', 'dt+', 'dt+wm']:
+                    if model_type in ['dt', 'dt+', 'dt+wm','aedt']:
                         ret, length = evaluate_episode_rtg(
                             env,
                             state_dim,
@@ -260,7 +261,7 @@ def experiment(
             resid_pdrop=variant['dropout'],
             attn_pdrop=variant['dropout'],
         )
-    elif model_type in ['dt+','dt+wm']:
+    elif model_type in ['dt+','dt+wm','aedt']:
         model = DecisionTransformer(
             state_dim=state_dim,
             act_dim=act_dim,
@@ -340,6 +341,20 @@ def experiment(
             pretrain_steps=variant['pretrain_steps_per_iter'],
             pretrain_iters=variant['pretrain_iters'],
             scheduler=scheduler,
+            eval_fns=[eval_episodes(tar) for tar in env_targets],
+        )
+    elif model_type == 'aedt':
+        loss_fn = lambda s_hat, a_hat, r_hat, s, a, r: torch.mean(
+            ((variant['a_weight'] * (a_hat - a)**2).mean()) + 
+            ((variant['s_weight'] * (s_hat - s)**2).mean()) + 
+            ((variant['r_weight'] * (r_hat - r)**2).mean())) 
+        trainer = SequenceTrainer(
+            model=model,
+            optimizer=optimizer,
+            batch_size=batch_size,
+            get_batch=get_batch,
+            scheduler=scheduler,
+            loss_fn=loss_fn,
             eval_fns=[eval_episodes(tar) for tar in env_targets],
         )
     elif model_type == 'bc':

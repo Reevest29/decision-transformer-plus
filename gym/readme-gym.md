@@ -34,7 +34,9 @@ python experiment.py --env hopper --dataset medium --model_type dt+wm --num_step
 ```
 
 ```
-python experiment.py --env hopper --dataset medium --model_type dt --num_steps_per_iter 1000 --max_iters 100 --num_eval_episodes 10
+python experiment.py --env hopper --dataset medium --model_type dt --num_steps_per_iter 1000 --max_iters 100 --num_eval_episodes 10 
+
+python experiment.py --env hopper --dataset medium --model_type aedt --num_steps_per_iter 1000 --max_iters 100 --num_eval_episodes 10 --a_weight 1 --r_weight 1 --s_weight 1
 ```
 
 Adding `-w True` will log results to Weights and Biases.
