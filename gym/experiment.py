@@ -348,7 +348,7 @@ def experiment(
             ((variant['a_weight'] * (a_hat - a)**2).mean()) + 
             ((variant['s_weight'] * (s_hat - s)**2).mean()) + 
             ((variant['r_weight'] * (r_hat - r)**2).mean())) 
-        trainer = SequenceTrainer(
+        trainer = AutoEncoderTrainer(
             model=model,
             optimizer=optimizer,
             batch_size=batch_size,
