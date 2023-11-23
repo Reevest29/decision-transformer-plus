@@ -12,15 +12,41 @@ class AutoEncoderTrainer(Trainer):
         state_target = torch.clone(states)
         reward_target = torch.clone(rewards)
 
-        import pdb; pdb.set_trace()
+        states_shape, actions_shape, rewards_shape = states.shape, actions.shape, rewards.shape
+
+        batch_size, context_len, _ = states_shape
+        state_dim = states_shape[-1]
+        action_dim = actions_shape[-1]
+        reward_dim = rewards_shape[-1]
+
+        flat_states = states.reshape[-1, state_dim]
+        flat_actions = actions.reshape[-1, action_dim]
+        flat_rewards = rewards.reshape[-1, reward_dim]
+
+
+        num_tokens = batch_size * context_len
+        drop_prob = torch.random(0.7,0.9)
+        state_idxs = torch.randint(high=num_tokens,size=(int(num_tokens*drop_prob),))
+        action_idxs = torch.randint(high=num_tokens,size=(int(num_tokens*drop_prob),))
+        reward_idxs = torch.randint(high=num_tokens,size=(int(num_tokens*drop_prob),))
+
+        flat_states[state_idxs] = torch.zeros(state_dim)
+        flat_actions[action_idxs] = torch.zeros(action_dim)
+        flat_rewards[reward_idxs] = torch.zeros(reward_dim)
+
+        masked_states = flat_states.reshape(batch_size,context_len,state_dim)
+        masked_actions = flat_actions.reshape(batch_size,context_len,action_dim)
+        masked_rewards = flat_rewards.reshape(batch_size,context_len,reward_dim)
+
+
+
 
         state_preds, action_preds, reward_preds = self.model.forward(
-            states, actions, rewards, rtg[:,:-1], timesteps, attention_mask=attention_mask,
+            masked_states, masked_actions, masked_rewards, rtg[:,:-1], timesteps, attention_mask=attention_mask,
         )
 
-        act_dim = action_preds.shape[2]
-        action_preds = action_preds.reshape(-1, act_dim)[attention_mask.reshape(-1) > 0]
-        action_target = action_target.reshape(-1, act_dim)[attention_mask.reshape(-1) > 0]
+        action_preds = action_preds.reshape(-1, action_dim)[attention_mask.reshape(-1) > 0]
+        action_target = action_target.reshape(-1, action_dim)[attention_mask.reshape(-1) > 0]
 
         loss = self.loss_fn(
             state_preds, action_preds, reward_preds,
