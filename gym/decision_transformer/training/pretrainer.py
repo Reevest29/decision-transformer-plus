@@ -39,6 +39,16 @@ class PreTrainer:
                 train_losses.append(train_loss)
                 if self.scheduler is not None:
                     self.scheduler.step()
+            logs['time/pretraining'] = time.time() - train_start
+
+            eval_start = time.time()
+
+            self.model.eval()
+            print(f"Evaluation Loop #{iter_num}")
+            for eval_fn in (self.eval_fns):
+                outputs = eval_fn(self.model)
+                for k, v in outputs.items():
+                    logs[f'pretrain_evaluation/{k}'] = v
         else:
             print(f"Training Loop #{iter_num}")
             for t in tqdm(range(num_steps)):
@@ -46,17 +56,18 @@ class PreTrainer:
                 train_losses.append(train_loss)
                 if self.scheduler is not None:
                     self.scheduler.step()
+            logs['time/training'] = time.time() - train_start
 
-        logs['time/training'] = time.time() - train_start
+            eval_start = time.time()
 
-        eval_start = time.time()
+            self.model.eval()
+            print(f"Evaluation Loop #{iter_num}")
+            for eval_fn in (self.eval_fns):
+                outputs = eval_fn(self.model)
+                for k, v in outputs.items():
+                    logs[f'evaluation/{k}'] = v
 
-        self.model.eval()
-        print(f"Evaluation Loop #{iter_num}")
-        for eval_fn in (self.eval_fns):
-            outputs = eval_fn(self.model)
-            for k, v in outputs.items():
-                logs[f'evaluation/{k}'] = v
+        
 
         logs['time/total'] = time.time() - self.start_time
         logs['time/evaluation'] = time.time() - eval_start
