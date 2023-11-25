@@ -65,7 +65,7 @@ class PreTrainer:
             for eval_fn in (self.eval_fns):
                 outputs = eval_fn(self.model)
                 for k, v in outputs.items():
-                    logs[f'evaluation/{k}'] = v
+                    logs[f'evaluation/{k-iter_num}'] = v
 
         
 
