@@ -30,9 +30,9 @@ class AutoEncoderTrainer(Trainer):
         action_idxs = torch.randint(high=num_tokens,size=(int(num_tokens*drop_prob),))
         reward_idxs = torch.randint(high=num_tokens,size=(int(num_tokens*drop_prob),))
 
-        flat_states[state_idxs] = torch.zeros(state_dim)
-        flat_actions[action_idxs] = torch.zeros(action_dim)
-        flat_rewards[reward_idxs] = torch.zeros(reward_dim)
+        flat_states[state_idxs] = self.model.state_mask(torch.ones(state_dim))
+        flat_actions[action_idxs] = self.model.action_mask(torch.ones(action_dim))
+        flat_rewards[reward_idxs] = self.model.return_mask(1)
 
         masked_states = flat_states.reshape(batch_size,context_len,state_dim)
         masked_actions = flat_actions.reshape(batch_size,context_len,action_dim)

@@ -51,6 +51,10 @@ class DecisionTransformer(TrajectoryModel):
         )
         self.predict_return = torch.nn.Linear(hidden_size, 1)
 
+        self.action_mask = nn.Embedding(1,self.act_dim)
+        self.state_mask = nn.Embedding(1,state_dim)
+        self.return_mask = nn.Embedding(1,1)
+
     def forward(self, states, actions, rewards, returns_to_go, timesteps, attention_mask=None):
 
         batch_size, seq_length = states.shape[0], states.shape[1]
