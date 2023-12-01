@@ -149,7 +149,7 @@ class PreTrainer:
         reward_preds = reward_preds.reshape(-1, reward_dim)[attention_mask.reshape(-1) > 0]
         reward_target = reward_target.reshape(-1, reward_dim)[attention_mask.reshape(-1) > 0]
 
-        loss = ((state_preds - state_target) **2) + ((reward_preds - reward_target) **2)
+        loss = (((state_preds - state_target) **2) + ((reward_preds - reward_target) **2)).mean()
 
         self.optimizer.zero_grad()
         loss.backward()
