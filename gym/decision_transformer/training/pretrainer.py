@@ -65,7 +65,7 @@ class PreTrainer:
             for eval_fn in (self.eval_fns):
                 outputs = eval_fn(self.model)
                 for k, v in outputs.items():
-                    logs[f'evaluation/{k-iter_num}'] = v
+                    logs[f'evaluation/{k}'] = v
 
         
 
@@ -150,7 +150,7 @@ class PreTrainer:
         reward_target = reward_target.reshape(-1, reward_dim)[attention_mask.reshape(-1) > 0]
 
         loss = (((state_preds - state_target) **2) + ((reward_preds - reward_target) **2)).mean()
-
+ 
         self.optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), .25)
